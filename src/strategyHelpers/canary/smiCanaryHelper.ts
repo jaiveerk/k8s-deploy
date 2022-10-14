@@ -225,7 +225,6 @@ async function adjustTraffic(
          const kind = inputObject.kind
 
          if (isServiceEntity(kind)) {
-            core.debug(`generating stable traffic split for service ${name}`)
             trafficSplitManifests.push(
                await createTrafficSplitManifestFile(
                   kubectl,
@@ -235,7 +234,6 @@ async function adjustTraffic(
                   canaryWeight
                )
             )
-            core.debug(`pushed stable traffic split for service ${name}`)
          }
       }
    }
@@ -245,7 +243,6 @@ async function adjustTraffic(
    }
 
    const forceDeployment = core.getInput('force').toLowerCase() === 'true'
-   core.debug('applying traffic split manifests')
    const result = await kubectl.apply(trafficSplitManifests, forceDeployment)
    checkForErrors([result])
 }
@@ -292,9 +289,6 @@ async function createTrafficSplitManifestFile(
       stableWeight,
       baselineWeight,
       canaryWeight
-   )
-   core.debug(
-      `generated stable traffic split for service ${serviceName}: ${smiObjectString}`
    )
 
    const manifestFile = fileHelper.writeManifestToFile(
