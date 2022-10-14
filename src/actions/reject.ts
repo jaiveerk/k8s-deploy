@@ -47,12 +47,6 @@ async function rejectCanary(kubectl: Kubectl, manifests: string[]) {
          manifests
       )
       core.endGroup()
-
-      core.startGroup('Redirecting traffic to stable deployment')
-      await SMICanaryDeploymentHelper.redirectTrafficToStableDeployment(
-         kubectl,
-         manifests
-      )
    }
 
    core.startGroup('Deleting baseline and canary workloads')
