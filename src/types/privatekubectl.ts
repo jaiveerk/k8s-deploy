@@ -1,4 +1,5 @@
 import {Kubectl} from './kubectl'
+import * as minimist from 'minimist'
 import {ExecOptions, ExecOutput, getExecOutput} from '@actions/exec'
 import * as core from '@actions/core'
 import * as os from 'os'
@@ -7,15 +8,29 @@ import * as path from 'path'
 
 export class PrivateKubectl extends Kubectl {
    protected async execute(args: string[], silent: boolean = false) {
+      if (this.namespace) {
+         args = args.concat(['--namespace', this.namespace])
+      }
       args.unshift('kubectl')
       let kubectlCmd = args.join(' ')
       let addFileFlag = false
-      let eo = <ExecOptions>{silent}
+      let eo = <ExecOptions>{
+         silent: true,
+         failOnStdErr: false,
+         ignoreReturnCode: true
+      }
 
       if (this.containsFilenames(kubectlCmd)) {
          // For private clusters, files will referenced solely by their basename
          kubectlCmd = this.replaceFilnamesWithBasenames(kubectlCmd)
          addFileFlag = true
+      }
+
+      if (this.resourceGroup === '') {
+         throw Error('Resource group must be specified for private cluster')
+      }
+      if (this.name === '') {
+         throw Error('Cluster name must be specified for private cluster')
       }
 
       const privateClusterArgs = [
@@ -27,7 +42,7 @@ export class PrivateKubectl extends Kubectl {
          '--name',
          this.name,
          '--command',
-         kubectlCmd
+         `${kubectlCmd}`
       ]
 
       if (addFileFlag) {
@@ -52,7 +67,28 @@ export class PrivateKubectl extends Kubectl {
       core.debug(
          `private cluster Kubectl run with invoke command: ${kubectlCmd}`
       )
-      return await getExecOutput('az', privateClusterArgs, eo)
+
+      const allArgs = [...privateClusterArgs, '-o', 'json']
+      core.debug(`full form of az command: az ${allArgs.join(' ')}`)
+      const runOutput = await getExecOutput('az', allArgs, eo)
+      core.debug(
+         `from kubectl private cluster command got run output ${JSON.stringify(
+            runOutput
+         )}`
+      )
+      const runObj: {logs: string; exitCode: number} = JSON.parse(
+         runOutput.stdout
+      )
+      if (!silent) core.info(runObj.logs)
+      if (runOutput.exitCode !== 0 && runObj.exitCode !== 0) {
+         throw Error(`failed private cluster Kubectl command: ${kubectlCmd}`)
+      }
+
+      return {
+         exitCode: runObj.exitCode,
+         stdout: runObj.logs,
+         stderr: ''
+      } as ExecOutput
    }
 
    private replaceFilnamesWithBasenames(kubectlCmd: string) {
@@ -71,23 +107,31 @@ export class PrivateKubectl extends Kubectl {
    }
 
    public extractFilesnames(strToParse: string) {
-      let start = strToParse.indexOf('-filename')
-      let offset = 7
+      const fileNames: string[] = []
+      const argv = minimist(strToParse.split(' '))
+      const fArg = 'f'
+      const filenameArg = 'filename'
 
-      if (start == -1) {
-         start = strToParse.indexOf('-f')
+      fileNames.push(...this.extractFilesFromMinimist(argv, fArg))
+      fileNames.push(...this.extractFilesFromMinimist(argv, filenameArg))
 
-         if (start == -1) {
-            return ''
+      return fileNames.join(' ')
+   }
+
+   private extractFilesFromMinimist(argv, arg: string): string[] {
+      if (!argv[arg]) {
+         return []
+      }
+      const toReturn: string[] = []
+      if (typeof argv[arg] === 'string') {
+         toReturn.push(...argv[arg].split(','))
+      } else {
+         for (const value of argv[arg] as string[]) {
+            toReturn.push(...value.split(','))
          }
-         offset = 0
       }
 
-      let temp = strToParse.substring(start + offset)
-      let end = temp.indexOf(' -')
-
-      //End could be case where the -f flag was last, or -f is followed by some additonal flag and it's arguments
-      return temp.substring(3, end == -1 ? temp.length : end).trim()
+      return toReturn
    }
 
    private containsFilenames(str: string) {

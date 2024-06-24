@@ -6,6 +6,7 @@ inputs:
    namespace:
       description: 'Choose the target Kubernetes namespace. If the namespace is not provided, the commands will run in the default namespace.'
       required: false
+      default: default
    manifests:
       description: 'Path to the manifest files which will be used for deployment.'
       required: true
@@ -41,7 +42,7 @@ inputs:
    baseline-and-canary-replicas:
       description: 'Baseline and canary replicas count. Valid value between 0 to 100 (inclusive)'
       required: false
-      default: 0
+      default: ''
    percentage:
       description: 'Percentage of traffic redirect to canary deployment'
       required: false
