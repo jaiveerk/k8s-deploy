@@ -51,7 +51,7 @@ Following are the key capabilities of this action:
   </tr>
   <tr>
     <td>manifests </br></br>(Required)</td>
-    <td>Path to the manifest files to be used for deployment. These can also be directories containing manifest files, in which case, all manifest files in the referenced directory at every depth will be deployed. Files not ending in .yml or .yaml will be ignored.</td>
+    <td>Path to the manifest files to be used for deployment. These can also be directories containing manifest files, in which case, all manifest files in the referenced directory at every depth will be deployed, or URLs to manifest files (like https://raw.githubusercontent.com/kubernetes/website/main/content/en/examples/controllers/nginx-deployment.yaml). Files and URLs not ending in .yml or .yaml will be ignored.</td>
   </tr>
     <tr>
     <td>strategy </br></br>(Required)</td>
@@ -92,7 +92,7 @@ Following are the key capabilities of this action:
   </tr>
   <tr>
     <td>baseline-and-canary-replicas </br></br> (Optional and relevant only if strategy is canary and traffic-split-method is smi)</td>
-    <td>The number of baseline and canary replicas. Percentage traffic split is controlled in the service mesh plane, the actual number of replicas for canary and baseline variants could be controlled independently of the traffic split. For example, assume that the input Deployment manifest desired 30 replicas to be used for stable and that the following inputs were specified for the action </br></br><code>&nbsp;&nbsp;&nbsp;&nbsp;strategy: canary<br>&nbsp;&nbsp;&nbsp;&nbsp;trafficSplitMethod: smi<br>&nbsp;&nbsp;&nbsp;&nbsp;percentage: 20<br>&nbsp;&nbsp;&nbsp;&nbsp;baselineAndCanaryReplicas: 1</code></br></br> In this case, stable variant will receive 80% traffic while baseline and canary variants will receive 10% each (20% split equally between baseline and canary). However, instead of creating baseline and canary with 3 replicas, the explicit count of baseline and canary replicas is honored. That is, only 1 replica each is created for baseline and canary variants.</td>
+    <td>The number of baseline and canary replicas. Percentage traffic split is controlled in the service mesh plane, the actual number of replicas for canary and baseline variants could be controlled independently of the traffic split. For example, assume that the input Deployment manifest desired 30 replicas to be used for stable and that the following inputs were specified for the action </br></br><code>&nbsp;&nbsp;&nbsp;&nbsp;strategy: canary<br>&nbsp;&nbsp;&nbsp;&nbsp;trafficSplitMethod: smi<br>&nbsp;&nbsp;&nbsp;&nbsp;percentage: 20<br>&nbsp;&nbsp;&nbsp;&nbsp;baselineAndCanaryReplicas: 1</code></br></br> In this case, stable variant will receive 80% traffic while baseline and canary variants will receive 10% each (20% split equally between baseline and canary). However, instead of creating baseline and canary with 3 replicas each, the explicit count of baseline and canary replicas is honored. That is, only 1 replica each is created for baseline and canary variants.</td>
   </tr>
    <tr>
     <td>route-method </br></br>(Optional and relevant only if strategy is blue-green)</td>
@@ -471,3 +471,7 @@ provided by the bot. You will only need to do this once across all repos using o
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
 For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
 contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+
+## Support
+
+k8s-deploy is an open source project that is [**not** covered by the Microsoft Azure support policy](https://support.microsoft.com/en-us/help/2941892/support-for-linux-and-open-source-technology-in-azure). [Please search open issues here](https://github.com/Azure/k8s-deploy/issues), and if your issue isn't already represented please [open a new one](https://github.com/Azure/k8s-deploy/issues/new/choose). The project maintainers will respond to the best of their abilities.
